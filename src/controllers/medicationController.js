@@ -1,10 +1,27 @@
 import { MedicationModel } from "../models/medicationModel.js";
 
 export const MedicationController = {
-  async getAll(req, res) {
+  async getAllPaginated(req, res) {
     try {
-      const meds = await MedicationModel.getAll();
-      res.json(meds);
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 10;
+      const name = req.query.name || "";
+      const results = await MedicationModel.search({ name });
+      if (results.length === 0) {
+        return res.status(404).json({ error: "No medications found" });
+      }
+      const result = await MedicationModel.getAllPaginated(page, limit, name);
+      res.json(result);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  },
+
+  async search(req, res) {
+    try {
+      const { name } = req.query;
+      const results = await MedicationModel.search({ name });
+      res.json(results);
     } catch (err) {
       res.status(500).json({ error: err.message });
     }
@@ -21,7 +38,15 @@ export const MedicationController = {
 
   async create(req, res) {
     try {
-      const med = await MedicationModel.create(req.body);
+      let data = req.body;
+      console.log(data);
+      if (data.price < 0) {
+        return res.status(400).json({ error: "Price cannot be negative" });
+      }
+      if (data.quantity < 0) {
+        return res.status(400).json({ error: "Quantity cannot be negative" });
+      } 
+      const med = await MedicationModel.create(data);
       res.status(201).json(med);
     } catch (err) {
       res.status(400).json({ error: err.message });

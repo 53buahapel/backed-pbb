@@ -1,3 +1,4 @@
+  // ...existing code...
 import { supabase } from "../config/supabaseClient.js";
 
 export const SupplierModel = {
@@ -5,6 +6,23 @@ export const SupplierModel = {
     const { data, error } = await supabase.from("suppliers").select("*");
     if (error) throw error;
     return data;
+  },
+
+  async getAllPaginated(page, limit) {
+    const from = (page - 1) * limit;
+    const to = from + limit - 1;
+    const { data, error, count } = await supabase
+      .from("suppliers")
+      .select("*", { count: "exact" })
+      .range(from, to);
+    if (error) throw error;
+    return {
+      data,
+      page,
+      limit,
+      total: count,
+      totalPages: Math.ceil(count / limit)
+    };
   },
 
   async getById(id) {

@@ -1,6 +1,7 @@
 import { CategoryModel } from "../models/categoryModel.js";
 
 export const CategoryController = {
+
   async create(req, res) {
     try {
       const { name } = req.body;
@@ -15,6 +16,17 @@ export const CategoryController = {
     try {
       const categories = await CategoryModel.getAll();
       res.json(categories);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  },
+
+  async getAllPaginated(req, res) {
+    try {
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 10;
+      const result = await CategoryModel.getAllPaginated(page, limit);
+      res.json(result);
     } catch (err) {
       res.status(500).json({ error: err.message });
     }

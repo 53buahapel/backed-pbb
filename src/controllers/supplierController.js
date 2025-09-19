@@ -1,10 +1,12 @@
 import { SupplierModel } from "../models/supplierModel.js";
 
 export const SupplierController = {
-  async getAll(req, res) {
+  async getAllPaginated(req, res) {
     try {
-      const suppliers = await SupplierModel.getAll();
-      res.json(suppliers);
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 10;
+      const result = await SupplierModel.getAllPaginated(page, limit);
+      res.json(result);
     } catch (err) {
       res.status(500).json({ error: err.message });
     }

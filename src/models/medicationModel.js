@@ -1,3 +1,4 @@
+  // ...existing code...
 import { supabase } from "../config/supabaseClient.js";
 
 export const MedicationModel = {
@@ -9,6 +10,37 @@ export const MedicationModel = {
       );
     if (error) throw error;
     return data;
+  },
+
+  async search({ name, category, supplier }) {
+    let query = supabase.from("medications").select(
+      "id, sku, name, description, price, quantity, category_id, supplier_id"
+    );
+    
+    if (name) {
+      query = query.ilike("name", `%${name}%`);
+    }
+    
+    const { data, error } = await query;
+    if (error) throw error;
+    return data;
+  },
+
+  async getAllPaginated(page, limit) {
+    const from = (page - 1) * limit;
+    const to = from + limit - 1;
+    const { data, error, count } = await supabase
+      .from("medications")
+      .select("id, sku, name, description, price, quantity, category_id, supplier_id", { count: "exact" })
+      .range(from, to);
+    if (error) throw error;
+    return {
+      data,
+      page,
+      limit,
+      total: count,
+      totalPages: Math.ceil(count / limit)
+    };
   },
 
   async getById(id) {
@@ -50,5 +82,13 @@ export const MedicationModel = {
     const { error } = await supabase.from("medications").delete().eq("id", id);
     if (error) throw error;
     return { success: true };
+  },
+
+  async getTotalCount() {
+    const { count, error } = await supabase
+      .from("medications")
+      .select("id", { count: "exact", head: true });
+    if (error) throw error;
+    return count;
   },
 };
